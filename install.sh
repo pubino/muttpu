@@ -59,15 +59,31 @@ else
     echo -e "${BOLD}Homebrew is required to install dependencies.${NC}"
     echo ""
 
-    # Check if user has sudo access
+    # Check if user has sudo access without prompting
     HAS_SUDO=false
+
+    # Check for passwordless sudo first
     if sudo -n true 2>/dev/null; then
         HAS_SUDO=true
-    else
-        # Try to get sudo access
-        echo -e "${YELLOW}Checking for administrator privileges...${NC}"
-        if sudo -v 2>/dev/null; then
-            HAS_SUDO=true
+    fi
+
+    # If we don't have passwordless sudo, check if user is in admin group
+    if [ "$HAS_SUDO" = false ]; then
+        if groups | grep -q -E '\b(admin|wheel)\b'; then
+            # User is in admin group, they can get sudo but we won't prompt yet
+            echo -e "${YELLOW}Administrator privileges available but will require password.${NC}"
+            echo ""
+            echo -e "${BOLD}Homebrew installation options:${NC}"
+            echo -e "  ${CYAN}1.${NC} Standard installation (requires password)"
+            echo -e "  ${CYAN}2.${NC} User-local installation (no password needed)"
+            echo ""
+            read -p "Choose option [1/2]: " -n 1 -r
+            echo
+
+            if [[ $REPLY == "1" ]]; then
+                # User chose standard install, they'll be prompted by Homebrew installer
+                HAS_SUDO=true
+            fi
         fi
     fi
 
