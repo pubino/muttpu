@@ -79,7 +79,7 @@ else
             echo -e "  ${CYAN}1.${NC} Standard installation (requires password)"
             echo -e "  ${CYAN}2.${NC} User-local installation (no password needed)"
             echo ""
-            read -p "Choose option [1/2]: " -n 1 -r
+            read -p "Choose option [1/2]: " -n 1 -r </dev/tty
             echo
 
             if [[ $REPLY == "1" ]]; then
@@ -101,7 +101,7 @@ else
             echo -e "  ${CYAN}1.${NC} Install to home directory (no admin access required)"
             echo -e "  ${CYAN}2.${NC} Cancel installation"
             echo ""
-            read -p "Choose option [1/2]: " -n 1 -r
+            read -p "Choose option [1/2]: " -n 1 -r </dev/tty
             echo
 
             if [[ $REPLY == "1" ]]; then
@@ -177,7 +177,7 @@ if command -v neomutt &> /dev/null; then
 else
     print_warning "NeoMutt is not installed"
     echo ""
-    read -p "Would you like to install NeoMutt? [Y/n] " -n 1 -r
+    read -p "Would you like to install NeoMutt? [Y/n] " -n 1 -r </dev/tty
     echo
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
         print_info "Installing NeoMutt..."
@@ -196,7 +196,7 @@ if command -v gpg &> /dev/null; then
 else
     print_warning "GPG is not installed"
     echo ""
-    read -p "Would you like to install GPG? [Y/n] " -n 1 -r
+    read -p "Would you like to install GPG? [Y/n] " -n 1 -r </dev/tty
     echo
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
         print_info "Installing GPG..."
@@ -217,7 +217,7 @@ else
     echo ""
     echo -e "${BOLD}A GPG key is required to encrypt OAuth2 tokens.${NC}"
     echo ""
-    read -p "Would you like to generate a GPG key now? [Y/n] " -n 1 -r
+    read -p "Would you like to generate a GPG key now? [Y/n] " -n 1 -r </dev/tty
     echo
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
         print_info "Generating GPG key..."
@@ -240,7 +240,7 @@ print_info "Setting up MuttPU in $INSTALL_DIR..."
 if [ -d "$INSTALL_DIR" ]; then
     print_warning "MuttPU directory already exists"
     echo ""
-    read -p "Would you like to update it? [Y/n] " -n 1 -r
+    read -p "Would you like to update it? [Y/n] " -n 1 -r </dev/tty
     echo
     if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
         print_info "Updating MuttPU..."
