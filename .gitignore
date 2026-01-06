@@ -1,0 +1,46 @@
+# Token files (sensitive)
+*.gpg
+token.gpg
+
+# Config files (user-specific)
+neomuttrc
+
+# Export state files
+.export_state.json
+
+# Development notes
+SHARED_TASK_NOTES.md
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Testing/temp directories
+test/
+tmp/
+backup/
+backups/
+exports/
+
+# NeoMutt cache
+*.cache
