@@ -12,6 +12,7 @@ curl -sSL https://raw.githubusercontent.com/pubino/muttpu/main/install.sh | bash
 
 This will:
 - Check for and install Homebrew (if needed)
+- **No sudo required**: Offers user-local Homebrew installation (`~/homebrew`) if you don't have admin access
 - Install NeoMutt and GPG dependencies
 - Set up GPG key for token encryption
 - Clone MuttPU to `~/Downloads/muttpu`

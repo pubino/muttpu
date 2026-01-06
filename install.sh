@@ -58,22 +58,92 @@ else
     echo ""
     echo -e "${BOLD}Homebrew is required to install dependencies.${NC}"
     echo ""
-    read -p "Would you like to install Homebrew now? [Y/n] " -n 1 -r
-    echo
-    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-        print_info "Installing Homebrew..."
-        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
 
-        # Add Homebrew to PATH for Apple Silicon
-        if [[ $(uname -m) == "arm64" ]]; then
-            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-            eval "$(/opt/homebrew/bin/brew shellenv)"
-        fi
-
-        print_success "Homebrew installed"
+    # Check if user has sudo access
+    HAS_SUDO=false
+    if sudo -n true 2>/dev/null; then
+        HAS_SUDO=true
     else
-        print_error "Installation cancelled. Homebrew is required."
-        exit 1
+        # Try to get sudo access
+        echo -e "${YELLOW}Checking for administrator privileges...${NC}"
+        if sudo -v 2>/dev/null; then
+            HAS_SUDO=true
+        fi
+    fi
+
+    if [ "$HAS_SUDO" = false ]; then
+        print_warning "No sudo access detected"
+        echo ""
+        echo -e "${BOLD}Standard Homebrew installation requires administrator access.${NC}"
+        echo ""
+        echo -e "${YELLOW}Options:${NC}"
+        echo -e "  ${CYAN}1.${NC} Install to home directory (no sudo required)"
+        echo -e "  ${CYAN}2.${NC} Cancel and get sudo access"
+        echo ""
+        read -p "Choose option [1/2]: " -n 1 -r
+        echo
+
+        if [[ $REPLY == "1" ]]; then
+            print_info "Installing Homebrew to ~/homebrew (user-local installation)..."
+            echo ""
+            echo -e "${CYAN}This will install Homebrew without requiring administrator access.${NC}"
+            echo -e "${CYAN}Installation directory: ~/homebrew${NC}"
+            echo ""
+
+            # Create homebrew directory
+            mkdir -p ~/homebrew
+
+            # Download and extract Homebrew
+            cd ~/homebrew
+            curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip-components 1
+
+            # Add to PATH
+            BREW_PATH="$HOME/homebrew/bin"
+            export PATH="$BREW_PATH:$PATH"
+
+            # Add to shell profile
+            SHELL_PROFILE=""
+            if [ -f "$HOME/.zshrc" ]; then
+                SHELL_PROFILE="$HOME/.zshrc"
+            elif [ -f "$HOME/.bash_profile" ]; then
+                SHELL_PROFILE="$HOME/.bash_profile"
+            elif [ -f "$HOME/.bashrc" ]; then
+                SHELL_PROFILE="$HOME/.bashrc"
+            fi
+
+            if [ -n "$SHELL_PROFILE" ]; then
+                if ! grep -q "homebrew/bin" "$SHELL_PROFILE"; then
+                    echo "" >> "$SHELL_PROFILE"
+                    echo "# Homebrew (user-local installation)" >> "$SHELL_PROFILE"
+                    echo 'export PATH="$HOME/homebrew/bin:$PATH"' >> "$SHELL_PROFILE"
+                    print_success "Added Homebrew to $SHELL_PROFILE"
+                fi
+            fi
+
+            print_success "Homebrew installed to ~/homebrew"
+            print_info "You may need to restart your shell or run: source $SHELL_PROFILE"
+        else
+            print_error "Installation cancelled. Please obtain administrator access and try again."
+            exit 1
+        fi
+    else
+        read -p "Would you like to install Homebrew now? [Y/n] " -n 1 -r
+        echo
+        if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+            print_info "Installing Homebrew..."
+            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+            # Add Homebrew to PATH for Apple Silicon
+            if [[ $(uname -m) == "arm64" ]]; then
+                echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+                eval "$(/opt/homebrew/bin/brew shellenv)"
+            fi
+
+            print_success "Homebrew installed"
+        else
+            print_error "Installation cancelled. Homebrew is required."
+            exit 1
+        fi
     fi
 fi
 
