@@ -62,6 +62,44 @@ fi
 
 print_success "Running on macOS"
 
+# Check for Xcode Command Line Tools
+print_info "Checking for Xcode Command Line Tools..."
+if xcode-select -p &> /dev/null; then
+    print_success "Xcode Command Line Tools installed"
+else
+    print_warning "Xcode Command Line Tools not installed"
+    echo ""
+    echo -e "${BOLD}Command Line Tools are required for Homebrew and development tools.${NC}"
+    echo ""
+    read -p "Would you like to install Command Line Tools now? [Y/n] " -n 1 -r
+    echo
+    if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
+        print_info "Installing Xcode Command Line Tools..."
+        echo ""
+        echo -e "${CYAN}A dialog will appear. Click 'Install' and wait for completion.${NC}"
+        echo -e "${CYAN}This may take several minutes...${NC}"
+        echo ""
+
+        # Trigger the installer
+        xcode-select --install 2>/dev/null || true
+
+        # Wait for installation to complete
+        echo -e "${YELLOW}Waiting for installation to complete...${NC}"
+        echo -e "${YELLOW}(Press Ctrl+C if you cancelled the installation)${NC}"
+        echo ""
+
+        until xcode-select -p &> /dev/null; do
+            sleep 5
+        done
+
+        print_success "Xcode Command Line Tools installed"
+    else
+        print_error "Command Line Tools are required. Please install them and run this script again."
+        print_info "You can install them manually by running: xcode-select --install"
+        exit 1
+    fi
+fi
+
 # Check for Homebrew
 print_info "Checking for Homebrew..."
 if command -v brew &> /dev/null; then
