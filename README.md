@@ -4,6 +4,35 @@ Interactive command line tool for locally archiving M365 email with the help of 
 
 ## Quick Start
 
+### Automated Installation (Recommended)
+
+```bash
+curl -sSL https://raw.githubusercontent.com/pubino/muttpu/main/install.sh | bash
+```
+
+This will:
+- Check for and install Homebrew (if needed)
+- Install NeoMutt and GPG dependencies
+- Set up GPG key for token encryption
+- Clone MuttPU to `~/Downloads/muttpu`
+- Guide you through the setup process
+
+### Manual Installation
+
+```bash
+# 1. Install dependencies
+brew install neomutt gpg
+
+# 2. Clone repository
+git clone https://github.com/pubino/muttpu.git ~/Downloads/muttpu
+cd ~/Downloads/muttpu
+
+# 3. Make executable
+chmod +x muttpu.py
+```
+
+### Using MuttPU
+
 ```bash
 # 1. Setup OAuth2 authentication (one-time)
 ./muttpu.py setup
