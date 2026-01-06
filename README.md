@@ -4,13 +4,14 @@ Interactive command line tool for locally archiving M365 email with the help of 
 
 ## Quick Start
 
-### Automated Installation (Recommended)
+### Automated Installation
 
 ```bash
 curl -sSL https://raw.githubusercontent.com/pubino/muttpu/main/install.sh | bash
 ```
 
 This will:
+- Check for and install Xcode Command Line Tools (if needed)
 - Check for and install Homebrew (if needed)
 - **No sudo required**: Offers user-local Homebrew installation (`~/homebrew`) if you don't have admin access
 - Install NeoMutt and GPG dependencies
@@ -21,14 +22,21 @@ This will:
 ### Manual Installation
 
 ```bash
-# 1. Install dependencies
+# 1. Install Xcode Command Line Tools (if not already installed)
+xcode-select --install
+
+# 2. Install Homebrew (if not already installed)
+# Visit https://brew.sh or use:
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+# 3. Install dependencies
 brew install neomutt gpg
 
-# 2. Clone repository
+# 4. Clone repository
 git clone https://github.com/pubino/muttpu.git ~/Downloads/muttpu
 cd ~/Downloads/muttpu
 
-# 3. Make executable
+# 5. Make executable
 chmod +x muttpu.py
 ```
 
