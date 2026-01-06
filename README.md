@@ -1,4 +1,4 @@
-# MuttPU - Mutt Preservation Utility
+# MuttPU - Mail Preservation Utility
 
 Interactive command line tool for locally archiving M365 email with the help of [NeoMutt](https://neomutt.org).
 
