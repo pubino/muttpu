@@ -1,6 +1,6 @@
 # MuttPU - Mutt Preservation Utility
 
-Interactive command line tool for locally archiving M365 email using Mutt.
+Interactive command line tool for locally archiving M365 email with the help of [NeoMutt](https://neomutt.org).
 
 ## Quick Start
 
@@ -8,38 +8,36 @@ Interactive command line tool for locally archiving M365 email using Mutt.
 # 1. Setup OAuth2 authentication (one-time)
 ./muttpu.py setup
 
-# 2. Generate NeoMutt configuration (optional)
-./muttpu.py configure
-
-# 3. List your mailboxes
+# 2. List your mailboxes
 ./muttpu.py list
 
-# 4. Export a mailbox
+# 3. Export a mailbox
 ./muttpu.py export "INBOX" ~/backup --format mbox
 
-# 5. Export by year (e.g., all 2024 emails)
+# 4. Export by year (e.g., all 2024 emails)
 ./muttpu.py export "Archive" ~/backup/archive-2024 --year 2024 --format mbox
+
+# Optional: Generate NeoMutt config to use NeoMutt client directly
+./muttpu.py configure
 ```
 
 ## Features
 
 - ✅ **OAuth2 Authentication** - Secure, modern authentication (no passwords stored)
-- ✅ **Interactive & Colorized** - Beautiful terminal output with color-coded messages
-- ✅ **Single Entrypoint** - All functionality in one script (`muttpu.py`)
+- ✅ **Interactive & Colorized** - Terminal output with color-coded messages
 - ✅ **Export Formats** - EML (individual files) or MBOX (single file)
 - ✅ **Resumable Exports** - Can interrupt and resume exports
 - ✅ **Incremental Backups** - Only exports new messages
 - ✅ **Year-Based Filtering** - Export messages by sent year
-- ✅ **Progress Tracking** - Checkpoints and progress indicators
+- ✅ **Progress Indicator** - Checkpoints and progress indicators
 
 ## Installation
 
 ### Prerequisites
 
-- macOS (tested on macOS 15.2)
+- macOS (tested on macOS 26.2)
 - Python 3
-- NeoMutt (installed via Homebrew)
-- GPG (for token encryption)
+- NeoMutt and GPG (installed via Homebrew)
 
 ### Setup
 
@@ -54,11 +52,11 @@ brew install neomutt gpg
 ```
 
 This will:
-- Use Thunderbird's pre-registered OAuth2 credentials
-- Display a URL and device code
-- Ask you to visit the URL in a browser
-- Prompt you to sign in with your M365 credentials
-- Save an encrypted token to the configured location
+
+- Per NeoMutt, use the Thunderbird app's pre-registered OAuth2 App ID
+- Display a URL and device code and ask that you visit the URL in a separate browser
+- Prompt you to sign in with your M365 credentials and provide the device code
+- Save an encrypted token to your local device
 
 ## Commands
 

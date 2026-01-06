@@ -56,6 +56,34 @@ OAUTH2_SCRIPT = "/opt/homebrew/Cellar/neomutt/20260501/share/neomutt/oauth2/mutt
 IMAP_SERVER = "outlook.office365.com"
 EMAIL = "user@example.com"
 
+def check_dependencies():
+    """Check if required dependencies are installed"""
+    import shutil
+
+    missing = []
+
+    # Check for NeoMutt (needed for OAuth2 script)
+    if not shutil.which('neomutt'):
+        missing.append('neomutt')
+
+    # Check for GPG (needed for token encryption)
+    if not shutil.which('gpg'):
+        missing.append('gpg')
+
+    if missing:
+        print_error("Missing required dependencies!")
+        print()
+        print_warning("The following tools are required but not installed:")
+        for dep in missing:
+            print(f"  {Colors.RED}✗{Colors.ENDC} {dep}")
+        print()
+        print_info("Install them with:")
+        print(f"  {Colors.CYAN}brew install {' '.join(missing)}{Colors.ENDC}")
+        print()
+        return False
+
+    return True
+
 def test_connectivity():
     """Test network connectivity to Microsoft OAuth endpoints"""
     import urllib.request
@@ -80,6 +108,22 @@ def get_token():
 def setup_oauth2():
     """Setup OAuth2 authentication"""
     print_header("OAuth2 Setup for M365")
+
+    # Check dependencies first
+    if not check_dependencies():
+        return False
+
+    # Check for OAuth2 script
+    if not Path(OAUTH2_SCRIPT).exists():
+        print_error("OAuth2 script not found!")
+        print()
+        print_warning(f"Expected location: {OAUTH2_SCRIPT}")
+        print()
+        print_info("This script comes with NeoMutt. Please ensure NeoMutt is installed:")
+        print(f"  {Colors.CYAN}brew install neomutt{Colors.ENDC}")
+        print()
+        print_info("Or update the OAUTH2_SCRIPT path in muttpu.py if it's in a different location.")
+        return False
 
     # Check for existing token
     if TOKEN_FILE.exists():
@@ -889,8 +933,13 @@ def main():
 
     # Check token file exists for all commands except setup and configure
     if args.command not in ['setup', 'configure'] and not TOKEN_FILE.exists():
-        print_error("Token file not found!")
-        print_info("Please run: ./muttpu.py setup")
+        print_error("OAuth2 token not found!")
+        print()
+        print_warning("You need to authenticate before using this command.")
+        print()
+        print_info("Run the setup command to authenticate:")
+        print(f"  {Colors.CYAN}./muttpu.py setup{Colors.ENDC}")
+        print()
         sys.exit(1)
 
     # Execute command
