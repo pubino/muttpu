@@ -606,7 +606,7 @@ class MailboxExporter:
     """Export mailbox to eml or mbox format"""
 
     def __init__(self, mailbox_name, output_dir, format="eml", batch_size=100,
-                 limit=None, skip=None, range_spec=None, year=None, fresh=False):
+                 limit=None, skip=None, range_spec=None, year=None, fresh=False, verbose=False):
         self.mailbox_name = mailbox_name
         self.output_dir = Path(output_dir)
         self.format = format.lower()
@@ -616,6 +616,7 @@ class MailboxExporter:
         self.range_spec = range_spec
         self.year = year
         self.fresh = fresh
+        self.verbose = verbose
 
         self.output_dir.mkdir(parents=True, exist_ok=True)
         self.state_file = self.output_dir / ".export_state.json"
@@ -645,6 +646,13 @@ class MailboxExporter:
         """Sanitize text for use in filename"""
         safe = "".join(c if c.isalnum() or c in (' ', '-', '_') else '_' for c in text)
         return safe[:max_length].strip()
+
+    def _print_progress_bar(self, current, total, width=50):
+        """Print a progress bar"""
+        pct = (current / total) * 100
+        filled = int(width * current / total)
+        bar = '█' * filled + '░' * (width - filled)
+        print(f"\r  {Colors.CYAN}[{bar}] {pct:.1f}% ({current:,}/{total:,}){Colors.ENDC}", end='', flush=True)
 
     def export(self):
         """Run the export"""
@@ -717,16 +725,27 @@ class MailboxExporter:
                 self.state["total_exported"] += 1
 
                 # Progress indicator
-                pct = (idx / len(uids_to_export)) * 100
-                if idx % 10 == 0:
-                    print(f"  {Colors.CYAN}[{idx}/{len(uids_to_export)}] {pct:.1f}%{Colors.ENDC} - Exported UID {uid}")
+                if self.verbose:
+                    # Verbose mode: show detailed progress
+                    pct = (idx / len(uids_to_export)) * 100
+                    if idx % 10 == 0:
+                        print(f"  {Colors.CYAN}[{idx}/{len(uids_to_export)}] {pct:.1f}%{Colors.ENDC} - Exported UID {uid}")
+                else:
+                    # Normal mode: show progress bar
+                    self._print_progress_bar(idx, len(uids_to_export))
 
                 # Checkpoint save
                 if idx % self.batch_size == 0:
                     self._save_state()
                     if self.format == "mbox":
                         mbox.flush()
-                    print(f"  {Colors.GREEN}💾 Checkpoint saved ({idx} messages){Colors.ENDC}")
+                    if self.verbose:
+                        print(f"  {Colors.GREEN}💾 Checkpoint saved ({idx} messages){Colors.ENDC}")
+                    else:
+                        # In progress bar mode, clear line and show checkpoint
+                        print(f"\r  {Colors.GREEN}💾 Checkpoint saved ({idx:,} messages){Colors.ENDC}" + " " * 30)
+                        # Redraw progress bar
+                        self._print_progress_bar(idx, len(uids_to_export))
 
             except Exception as e:
                 errors.append((uid, str(e)))
@@ -735,6 +754,10 @@ class MailboxExporter:
         self._save_state()
         if self.format == "mbox":
             mbox.close()
+
+        # Complete progress bar if in non-verbose mode
+        if not self.verbose:
+            print()  # New line after progress bar
 
         # Summary
         print()
@@ -855,6 +878,7 @@ def main():
     export_parser.add_argument('--range', help='Export range (e.g., 1:100)')
     export_parser.add_argument('--year', type=int, help='Export messages from specific year')
     export_parser.add_argument('--fresh', action='store_true', help='Start fresh, ignore previous state')
+    export_parser.add_argument('--verbose', action='store_true', help='Show detailed progress with UIDs')
 
     args = parser.parse_args()
 
@@ -890,7 +914,8 @@ def main():
             skip=args.skip,
             range_spec=args.range,
             year=args.year,
-            fresh=args.fresh
+            fresh=args.fresh,
+            verbose=args.verbose
         )
         exporter.export()
 
