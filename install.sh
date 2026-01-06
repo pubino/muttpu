@@ -179,18 +179,31 @@ else
             cd ~/homebrew
             curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip-components 1
 
-            # Add to PATH
+            # Add to PATH for current session
             BREW_PATH="$HOME/homebrew/bin"
             export PATH="$BREW_PATH:$PATH"
 
-            # Add to shell profile
+            # Add to shell profile for future sessions
             SHELL_PROFILE=""
-            if [ -f "$HOME/.zshrc" ]; then
+            if [ -n "$ZSH_VERSION" ]; then
+                # Running in zsh
                 SHELL_PROFILE="$HOME/.zshrc"
-            elif [ -f "$HOME/.bash_profile" ]; then
-                SHELL_PROFILE="$HOME/.bash_profile"
-            elif [ -f "$HOME/.bashrc" ]; then
-                SHELL_PROFILE="$HOME/.bashrc"
+            elif [ -n "$BASH_VERSION" ]; then
+                # Running in bash
+                if [ -f "$HOME/.bash_profile" ]; then
+                    SHELL_PROFILE="$HOME/.bash_profile"
+                else
+                    SHELL_PROFILE="$HOME/.bashrc"
+                fi
+            else
+                # Fallback: detect by file existence
+                if [ -f "$HOME/.zshrc" ]; then
+                    SHELL_PROFILE="$HOME/.zshrc"
+                elif [ -f "$HOME/.bash_profile" ]; then
+                    SHELL_PROFILE="$HOME/.bash_profile"
+                elif [ -f "$HOME/.bashrc" ]; then
+                    SHELL_PROFILE="$HOME/.bashrc"
+                fi
             fi
 
             if [ -n "$SHELL_PROFILE" ]; then
@@ -200,10 +213,19 @@ else
                     echo 'export PATH="$HOME/homebrew/bin:$PATH"' >> "$SHELL_PROFILE"
                     print_success "Added Homebrew to $SHELL_PROFILE"
                 fi
+
+                # Source the profile to update current session
+                print_info "Loading Homebrew into current session..."
+                source "$SHELL_PROFILE" 2>/dev/null || true
             fi
 
-            print_success "Homebrew installed to ~/homebrew"
-            print_info "You may need to restart your shell or run: source $SHELL_PROFILE"
+            # Verify brew is now available
+            if command -v brew &> /dev/null; then
+                print_success "Homebrew installed and available in current session"
+            else
+                print_warning "Homebrew installed but not in PATH"
+                print_info "Please restart your shell or run: source $SHELL_PROFILE"
+            fi
     elif [ "$USER_CHOICE" = "standard" ]; then
         print_info "Installing Homebrew (standard installation)..."
         /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
