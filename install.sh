@@ -61,10 +61,12 @@ else
 
     # Check if user has sudo access without prompting
     HAS_SUDO=false
+    USER_CHOICE=""
 
     # Check for passwordless sudo first
     if sudo -n true 2>/dev/null; then
         HAS_SUDO=true
+        USER_CHOICE="standard"
     fi
 
     # If we don't have passwordless sudo, check if user is in admin group
@@ -81,25 +83,38 @@ else
             echo
 
             if [[ $REPLY == "1" ]]; then
-                # User chose standard install, they'll be prompted by Homebrew installer
                 HAS_SUDO=true
+                USER_CHOICE="standard"
+            elif [[ $REPLY == "2" ]]; then
+                USER_CHOICE="userlocal"
+            else
+                print_error "Invalid choice. Exiting."
+                exit 1
+            fi
+        else
+            # No admin group membership - offer only user-local
+            print_warning "No administrator privileges detected"
+            echo ""
+            echo -e "${BOLD}Standard Homebrew installation requires administrator access.${NC}"
+            echo ""
+            echo -e "${YELLOW}Options:${NC}"
+            echo -e "  ${CYAN}1.${NC} Install to home directory (no admin access required)"
+            echo -e "  ${CYAN}2.${NC} Cancel installation"
+            echo ""
+            read -p "Choose option [1/2]: " -n 1 -r
+            echo
+
+            if [[ $REPLY == "1" ]]; then
+                USER_CHOICE="userlocal"
+            else
+                print_error "Installation cancelled."
+                exit 1
             fi
         fi
     fi
 
-    if [ "$HAS_SUDO" = false ]; then
-        print_warning "No sudo access detected"
-        echo ""
-        echo -e "${BOLD}Standard Homebrew installation requires administrator access.${NC}"
-        echo ""
-        echo -e "${YELLOW}Options:${NC}"
-        echo -e "  ${CYAN}1.${NC} Install to home directory (no sudo required)"
-        echo -e "  ${CYAN}2.${NC} Cancel and get sudo access"
-        echo ""
-        read -p "Choose option [1/2]: " -n 1 -r
-        echo
-
-        if [[ $REPLY == "1" ]]; then
+    # Now execute based on user choice
+    if [ "$USER_CHOICE" = "userlocal" ]; then
             print_info "Installing Homebrew to ~/homebrew (user-local installation)..."
             echo ""
             echo -e "${CYAN}This will install Homebrew without requiring administrator access.${NC}"
@@ -138,28 +153,20 @@ else
 
             print_success "Homebrew installed to ~/homebrew"
             print_info "You may need to restart your shell or run: source $SHELL_PROFILE"
-        else
-            print_error "Installation cancelled. Please obtain administrator access and try again."
-            exit 1
+    elif [ "$USER_CHOICE" = "standard" ]; then
+        print_info "Installing Homebrew (standard installation)..."
+        /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+
+        # Add Homebrew to PATH for Apple Silicon
+        if [[ $(uname -m) == "arm64" ]]; then
+            echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
+            eval "$(/opt/homebrew/bin/brew shellenv)"
         fi
+
+        print_success "Homebrew installed"
     else
-        read -p "Would you like to install Homebrew now? [Y/n] " -n 1 -r
-        echo
-        if [[ $REPLY =~ ^[Yy]$ ]] || [[ -z $REPLY ]]; then
-            print_info "Installing Homebrew..."
-            /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
-
-            # Add Homebrew to PATH for Apple Silicon
-            if [[ $(uname -m) == "arm64" ]]; then
-                echo 'eval "$(/opt/homebrew/bin/brew shellenv)"' >> ~/.zprofile
-                eval "$(/opt/homebrew/bin/brew shellenv)"
-            fi
-
-            print_success "Homebrew installed"
-        else
-            print_error "Installation cancelled. Homebrew is required."
-            exit 1
-        fi
+        print_error "Unexpected error in installation flow."
+        exit 1
     fi
 fi
 
