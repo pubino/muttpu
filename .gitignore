@@ -11,6 +11,9 @@ neomuttrc
 # Development notes
 SHARED_TASK_NOTES.md
 
+# Claude Code settings (local configuration)
+.claude/
+
 # Python
 __pycache__/
 *.py[cod]
