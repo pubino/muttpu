@@ -5,14 +5,38 @@ token.gpg
 # Config files (user-specific)
 neomuttrc
 
+# OAuth2 script (copied from NeoMutt)
+mutt_oauth2.py
+
 # Export state files
 .export_state.json
 
-# Development notes
-SHARED_TASK_NOTES.md
-
 # Claude Code settings (local configuration)
 .claude/
+
+# Build artifacts
+build/
+dist/
+*.app
+*.dmg
+*.pkg
+
+# Xcode
+*.xcodeproj/xcuserdata/
+*.xcworkspace/xcuserdata/
+DerivedData/
+*.xccheckout
+*.moved-aside
+*.hmap
+*.ipa
+*.dSYM.zip
+*.dSYM
+
+# Swift Package Manager
+.swiftpm/
+.build/
+Packages/
+Package.resolved
 
 # Python
 __pycache__/

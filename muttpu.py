@@ -52,9 +52,49 @@ def print_info(text):
 
 # Configuration
 TOKEN_FILE = Path.home() / "Downloads/muttpu/token.gpg"
-OAUTH2_SCRIPT = "/opt/homebrew/Cellar/neomutt/20260501/share/neomutt/oauth2/mutt_oauth2.py"
 IMAP_SERVER = "outlook.office365.com"
 EMAIL = "user@example.com"
+
+def find_oauth2_script():
+    """Find mutt_oauth2.py in multiple locations"""
+    import glob
+    import os
+
+    # Determine script directory (works even when __file__ is not defined)
+    try:
+        script_dir = Path(__file__).parent
+    except NameError:
+        # When __file__ is not defined, use current working directory
+        script_dir = Path.cwd()
+
+    # Search paths in order of preference
+    search_paths = [
+        # Bundled with app (same directory as muttpu.py)
+        script_dir / "mutt_oauth2.py",
+        # In user's home directory config
+        Path.home() / "Downloads/muttpu/mutt_oauth2.py",
+        # Homebrew Apple Silicon Mac location
+        "/opt/homebrew/Cellar/neomutt/*/share/neomutt/oauth2/mutt_oauth2.py",
+        # Homebrew Intel Mac location
+        "/usr/local/Cellar/neomutt/*/share/neomutt/oauth2/mutt_oauth2.py",
+    ]
+
+    for path in search_paths:
+        # Handle glob patterns (string paths with wildcards)
+        if isinstance(path, str) and '*' in path:
+            matches = glob.glob(path)
+            if matches:
+                return Path(matches[0])
+        else:
+            # Handle Path objects
+            path_obj = Path(path) if isinstance(path, str) else path
+            if path_obj.exists():
+                return path_obj
+
+    return None
+
+# Find OAuth2 script at runtime
+OAUTH2_SCRIPT = find_oauth2_script()
 
 def check_dependencies():
     """Check if required dependencies are installed"""
@@ -114,15 +154,18 @@ def setup_oauth2():
         return False
 
     # Check for OAuth2 script
-    if not Path(OAUTH2_SCRIPT).exists():
-        print_error("OAuth2 script not found!")
+    if OAUTH2_SCRIPT is None or not Path(OAUTH2_SCRIPT).exists():
+        print_error("OAuth2 script (mutt_oauth2.py) not found!")
         print()
-        print_warning(f"Expected location: {OAUTH2_SCRIPT}")
+        print_info("Searched the following locations:")
+        print(f"  • App bundle (same directory as muttpu.py)")
+        print(f"  • ~/Downloads/muttpu/mutt_oauth2.py")
+        print(f"  • Homebrew NeoMutt installation")
         print()
         print_info("This script comes with NeoMutt. Please ensure NeoMutt is installed:")
         print(f"  {Colors.CYAN}brew install neomutt{Colors.ENDC}")
         print()
-        print_info("Or update the OAUTH2_SCRIPT path in muttpu.py if it's in a different location.")
+        print_info("Or copy mutt_oauth2.py to ~/Downloads/muttpu/")
         return False
 
     # Check for existing token
