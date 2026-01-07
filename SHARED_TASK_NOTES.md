@@ -160,6 +160,8 @@ muttpu/
 - ✅ App process runs without crashes
 - ✅ App icon created and bundled successfully
 - ✅ Icon generation script (`scripts/generate_icon.py`) working
+- ✅ All Python unit tests passing (8/8 tests)
+- ✅ All code committed to git (5 commits)
 - ⚠️ OAuth token authentication test requires fresh token (existing token expired)
 - ✅ Auto-refresh feature implemented and compiles successfully
 
@@ -174,10 +176,15 @@ muttpu/
 1. **Test with fresh M365 credentials** - Full OAuth2 flow from scratch
    - Current token is expired (expected behavior)
    - Need to run OAuth2 setup through the app UI
+   - Verify mailbox listing and message counting work
 2. **Test auto-refresh functionality** - Verify timer works with valid token
-3. **Decide on Python bundling** - Standalone vs system requirement documentation
-4. **Polish error messages** - Improve user-facing error text
-5. **Add unit tests** - Test critical functionality
+3. **Test export functionality** - Try exporting a mailbox to verify end-to-end flow
+4. **Decide on Python bundling strategy**:
+   - Option A: Document Python3 as system requirement (simpler)
+   - Option B: Bundle Python.framework for true standalone distribution
+5. **Code signing and notarization** - Prepare for distribution
+   - Update notarize.sh with valid Developer ID
+   - Test notarization workflow
 
 ## Resources
 
