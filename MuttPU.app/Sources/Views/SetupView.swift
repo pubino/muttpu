@@ -275,9 +275,15 @@ struct SetupView: View {
                     Task { @MainActor in
                         self.setupOutput += chunk
 
+                        // Debug: print what we're receiving
+                        print("OAuth2 output chunk: \(chunk)")
+
                         // Look for Microsoft login URLs in the output
                         if let url = self.extractLoginURL(from: chunk) {
+                            print("Found URL, opening browser: \(url)")
                             self.openBrowser(url: url)
+                        } else if chunk.contains("microsoft") || chunk.contains("https://") {
+                            print("Chunk contains microsoft or https but no URL extracted")
                         }
                     }
                 }
@@ -307,11 +313,22 @@ struct SetupView: View {
     }
 
     private func extractLoginURL(from text: String) -> URL? {
-        // Look for Microsoft device code login URLs
-        let pattern = #"https://microsoft\.com/devicelogin[^\s]*"#
+        // Look for any Microsoft URLs (matches Python script pattern)
+        // Python checks: 'https://' in line and 'microsoft.com' in line
+        // Also handle login.microsoftonline.com
+        guard text.contains("https://") &&
+              (text.contains("microsoft.com") || text.contains("microsoftonline.com")) else {
+            return nil
+        }
+
+        // Extract URL using same pattern as Python: r'(https://[^\s]+)'
+        let pattern = #"(https://[^\s]+)"#
         if let range = text.range(of: pattern, options: .regularExpression) {
             let urlString = String(text[range])
-            return URL(string: urlString)
+            // Only return if it's a microsoft-related URL
+            if urlString.contains("microsoft.com") || urlString.contains("microsoftonline.com") {
+                return URL(string: urlString)
+            }
         }
         return nil
     }
