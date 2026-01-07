@@ -17,7 +17,8 @@ mutt_oauth2.py
 # Build artifacts
 build/
 dist/
-*.app
+# Ignore built .app bundles but not the source MuttPU.app directory
+dist/**/*.app
 *.dmg
 *.pkg
 
