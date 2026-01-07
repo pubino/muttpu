@@ -16,13 +16,14 @@ class PythonBridge: ObservableObject {
     nonisolated private let scriptPath: String
 
     private init() {
-        // In bundled app, Python and script will be in Resources
+        // Use system Python3 (we don't bundle Python runtime)
+        self.pythonPath = "/usr/bin/python3"
+
+        // In bundled app, script will be in Resources/Python/
         if let bundlePath = Bundle.main.resourcePath {
-            self.pythonPath = "\(bundlePath)/Python/bin/python3"
             self.scriptPath = "\(bundlePath)/Python/muttpu.py"
         } else {
             // Fallback for development
-            self.pythonPath = "/usr/bin/python3"
             self.scriptPath = FileManager.default.currentDirectoryPath + "/muttpu.py"
         }
     }
