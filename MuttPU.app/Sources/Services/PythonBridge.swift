@@ -28,6 +28,16 @@ class PythonBridge: ObservableObject {
         }
     }
 
+    // MARK: - Test Helpers
+
+    nonisolated func getPythonPath() -> String {
+        return pythonPath
+    }
+
+    nonisolated func getScriptPath() -> String {
+        return scriptPath
+    }
+
     // MARK: - Test Connection
 
     func testConnection() async throws -> PythonResult<Bool> {

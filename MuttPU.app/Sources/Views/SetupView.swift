@@ -56,13 +56,11 @@ struct SetupView: View {
             .frame(minWidth: 600, minHeight: 500)
             .navigationTitle("Setup")
             .toolbar {
-                if !isRunningSetup {
-                    ToolbarItem(placement: .cancellationAction) {
-                        Button("Close") {
-                            dismiss()
-                        }
-                        .disabled(isRunningSetup)
+                ToolbarItem(placement: .cancellationAction) {
+                    Button("Close") {
+                        dismiss()
                     }
+                    .disabled(isRunningSetup)
                 }
             }
             .alert("Setup Error", isPresented: $showingError) {
