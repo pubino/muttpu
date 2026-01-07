@@ -275,15 +275,10 @@ struct SetupView: View {
                     Task { @MainActor in
                         self.setupOutput += chunk
 
-                        // Debug: print what we're receiving
-                        print("OAuth2 output chunk: \(chunk)")
-
                         // Look for Microsoft login URLs in the output
                         if let url = self.extractLoginURL(from: chunk) {
-                            print("Found URL, opening browser: \(url)")
+                            print("[MuttPU] Found OAuth2 URL, opening browser: \(url)")
                             self.openBrowser(url: url)
-                        } else if chunk.contains("microsoft") || chunk.contains("https://") {
-                            print("Chunk contains microsoft or https but no URL extracted")
                         }
                     }
                 }
@@ -334,6 +329,14 @@ struct SetupView: View {
     }
 
     private func openBrowser(url: URL) {
-        NSWorkspace.shared.open(url)
+        // Ensure we're on main thread for NSWorkspace operations
+        DispatchQueue.main.async {
+            let success = NSWorkspace.shared.open(url)
+            if success {
+                print("[MuttPU] Successfully opened browser to \(url)")
+            } else {
+                print("[MuttPU] ERROR: Failed to open URL in browser: \(url)")
+            }
+        }
     }
 }
