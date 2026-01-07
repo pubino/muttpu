@@ -270,7 +270,17 @@ struct SetupView: View {
                     return
                 }
 
-                let output = try await PythonBridge.shared.setupOAuth2()
+                // Run setup with streaming output
+                let output = try await PythonBridge.shared.setupOAuth2WithStreaming { chunk in
+                    Task { @MainActor in
+                        self.setupOutput += chunk
+
+                        // Look for Microsoft login URLs in the output
+                        if let url = self.extractLoginURL(from: chunk) {
+                            self.openBrowser(url: url)
+                        }
+                    }
+                }
 
                 await MainActor.run {
                     setupOutput = output
@@ -294,5 +304,19 @@ struct SetupView: View {
                 }
             }
         }
+    }
+
+    private func extractLoginURL(from text: String) -> URL? {
+        // Look for Microsoft device code login URLs
+        let pattern = #"https://microsoft\.com/devicelogin[^\s]*"#
+        if let range = text.range(of: pattern, options: .regularExpression) {
+            let urlString = String(text[range])
+            return URL(string: urlString)
+        }
+        return nil
+    }
+
+    private func openBrowser(url: URL) {
+        NSWorkspace.shared.open(url)
     }
 }

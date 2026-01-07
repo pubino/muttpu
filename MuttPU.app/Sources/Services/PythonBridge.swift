@@ -144,6 +144,11 @@ class PythonBridge: ObservableObject {
         return try await runPythonCommand(args: args)
     }
 
+    func setupOAuth2WithStreaming(outputHandler: @escaping (String) -> Void) async throws -> String {
+        let args = ["setup"]
+        return try await runPythonCommandWithStreaming(args: args, outputHandler: outputHandler)
+    }
+
     // MARK: - Private Helpers
 
     nonisolated private func runPythonCommand(args: [String]) async throws -> String {
@@ -220,6 +225,48 @@ class PythonBridge: ObservableObject {
                 error: "Export failed"
             )
         }
+    }
+
+    nonisolated private func runPythonCommandWithStreaming(
+        args: [String],
+        outputHandler: @escaping (String) -> Void
+    ) async throws -> String {
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: pythonPath)
+        process.arguments = [scriptPath] + args
+
+        let outputPipe = Pipe()
+        process.standardOutput = outputPipe
+        process.standardError = outputPipe
+
+        // Read output asynchronously line by line
+        let handle = outputPipe.fileHandleForReading
+        var outputBuffer = ""
+
+        handle.readabilityHandler = { fileHandle in
+            let data = fileHandle.availableData
+            if let output = String(data: data, encoding: .utf8) {
+                outputBuffer += output
+
+                // Call handler with each new output chunk
+                outputHandler(output)
+            }
+        }
+
+        try process.run()
+        process.waitUntilExit()
+
+        handle.readabilityHandler = nil
+
+        if process.terminationStatus != 0 {
+            throw PythonBridgeError.commandFailed(
+                status: Int(process.terminationStatus),
+                output: outputBuffer,
+                error: "Setup failed"
+            )
+        }
+
+        return outputBuffer
     }
 
     private func parseProgress(from output: String) -> Double? {
